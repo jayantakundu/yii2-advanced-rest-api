@@ -2,9 +2,9 @@
 namespace api\modules\v1;
 
 /**
- * iKargo API V1 Module
+ * API V1 Module
  * 
- * @author Budi Irawan <budi@ebizu.com>
+ * @author jayanta kundu <jayantakundu89@gmail.com>
  * @since 1.0
  */
 class Module extends \yii\base\Module
