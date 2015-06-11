@@ -1,0 +1,48 @@
+<?php
+
+namespace api\modules\v1\models;
+
+use \yii\db\ActiveRecord
+
+/**
+ * This is the model class for table "ed_res_gallery".
+ *
+ * @author jayanta kundu
+ *
+ * @property integer $gallery_id
+ * @property integer $res_id
+ * @property string $image
+ * @property integer $sortorder
+ * @property integer $status
+ *
+ * @property Restaurant $res
+ */
+class ResGallery extends \yii\db\ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return 'ed_res_gallery';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function fields()
+    {
+	    return [    
+		'gallery_id','res_id','image', 'sortorder', 'status'
+	    ];
+    }
+    
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getRes()
+    {
+        return $this->hasOne(Restaurant::className(), ['res_id' => 'res_id']);
+    }
+}
