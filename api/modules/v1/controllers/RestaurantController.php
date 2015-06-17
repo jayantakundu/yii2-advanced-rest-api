@@ -104,31 +104,7 @@ class RestaurantController extends ActiveController
 	    if(array_key_exists('lat', $_GET) && array_key_exists('long', $_GET)){
 		
 			$query->having('(POW((69.1*(longitude-"'.$_GET['long'].'")*cos('.$_GET['lat'].'/57.3)),"2")+POW((69.1*(latitude-"'.$_GET['lat'].'")),"2")*1.609344) <=5');
-                      /* $query->having('(((acos(sin(("'.$_GET['long'].'"*pi()/180)) * 
-            sin((`latitude`*pi()/180))+cos(("'.$_GET['lat'].'"*pi()/180)) * 
-            cos((`latitude`*pi()/180)) * cos((("'.$_GET['long'].'"- `longitude`)* 
-            pi()/180))))*180/pi())*60*1.1515) <=50');
-	
-	    $query->having('(111.1111 *
-	    DEGREES(ACOS(COS(RADIANS(latitude))
-		 * COS(RADIANS('.$_GET['lat'].'))
-		 * COS(RADIANS(longitude) - RADIANS('.$_GET['long'].'))
-		 + SIN(RADIANS(latitude))
-		 * SIN(RADIANS('.$_GET['lat'].')))))<=500'); */
-	
-         /*echo '(((acos(sin(("'.$_GET['long'].'"*pi()/180)) * 
-            sin((`latitude`*pi()/180))+cos(("'.$_GET['lat'].'"*pi()/180)) * 
-            cos((`latitude`*pi()/180)) * cos((("'.$_GET['long'].'"- `longitude`)* 
-            pi()/180))))*180/pi())*60*1.1515)';exit;
-
-echo '(111.1111 *
-	    DEGREES(ACOS(COS(RADIANS(latitude))
-		 * COS(RADIANS('.$_GET['lat'].'))
-		 * COS(RADIANS(longitude) - RADIANS('.$_GET['long'].'))
-		 + SIN(RADIANS(latitude))
-		 * SIN(RADIANS('.$_GET['lat'].')))))<=500';*/
-	 
-		
+                   
 		}
          }else{ 
    		throw new \yii\web\HttpException(404, 'city required');
@@ -159,19 +135,6 @@ echo '(111.1111 *
     }
 
        
-   /*public function actionView($id)
-   {
-	
-
-	$model=new $this->modelClass;
-	$query = $model->find()->where(['res_id' => $id]);
-	$provider = new ActiveDataProvider([
-			    'query' => $query,
-                            
-			]);
-
-	return $provider;
-   }*/
 
   /**
    * @return Restaurant Reviews
