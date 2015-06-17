@@ -1,5 +1,4 @@
 <?php
-
 $config = [];
 
 if (!YII_ENV_TEST) {
