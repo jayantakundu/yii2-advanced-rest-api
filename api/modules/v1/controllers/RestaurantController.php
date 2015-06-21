@@ -40,103 +40,113 @@ class RestaurantController extends ActiveController
         return $actions;
 
     }
-    
    
     /**
      * @return Restaurants
      * @Note: customize index if you need
-     * @author jayanta kundu modified on 04.06.2015
+     * @author jayanta kundu created on 10.06.2015
      */
-    public function actionIndex(){
+    public function actionIndex(){ 
+	$perpage = 10;
         $model = new RestaurantSearch();
         $query = $model->find(); 
-	$query->joinWith(['resCritic' => function ($query) {
-        	$query->orderBy('ed_res_critic.rating DESC');} 
-		]);
-	$perpage = 5;
+	$query->joinWith(['resCritic' => function ($query) {}]);
+        // set default sort order here
+	$query->orderBy(['reservation'=>SORT_DESC,'critics_review'=>SORT_DESC,'ed_res_critic.rating'=>SORT_DESC]);
         //print_r($_GET);exit;
        
         if (!empty($_GET) && array_key_exists('city_id', $_GET)) {
 	    // apply city filter and status active filter here
-            $query->where(['city_id'=>$_GET['city_id'],'status'=>'1']);
-
-	    foreach ($_GET as $key => $value) {
-	      
-              if($key!='page' && $key!='per-page' && $key!='city_id'){
-
-		if($key =='costfortwo'){
-		// costfortwo customize here
-
-			$param=explode('-',$value); 
-			if(!empty($param[0]) && !empty($param[1]))
-			{
-			   $query->andWhere('costfortwo BETWEEN '.$param[0].' AND '.$param[1]);
-			}
-
-		}else if($key =='feature_ids'){
-		// feature customize here
-			$fetquery = new Query;
-			$fetquery->from('ed_restaurant_features');
-			$fetquery->select(['res_id']);
-			$list = $fetquery->andFilterWhere(['IN', 'features_id', explode(',',$_GET['feature_ids'])])->all(); 
-                        $resids = [];
-                        foreach($list as $key=>$each){
-			  $resids[] = $each['res_id']; 
-			}
-                        //print_r(count($resids));exit;
-
-			$query->andFilterWhere(['IN','res_id', $resids]);
-
-		}else if ($model->hasAttribute($key)) { 
-		// add all model attribute filter here
-                    $query->andWhere([$key=>$value]);
-
-		}else{ 
-   			//throw new \yii\web\HttpException(404, 'Invalid attribute:' . $key);
+            $query->where(['city_id'=>$_GET['city_id'],'status'=>'1','visibility'=>1]);
+	    // customise perpage 
+            if(array_key_exists('per-page', $_GET)){
+		$perpage = $_GET['per-page'];
+            }
+	    // location customise here region_id, area_id, subarea_id, group_id
+            if(array_key_exists('region_id', $_GET)){
+		$query->andWhere(['region_id'=>$_GET['region_id']]);
+            }
+	    if(array_key_exists('area_id', $_GET)){
+		$query->andWhere(['area_id'=>$_GET['area_id']]);
+            }
+	    if(array_key_exists('subarea_id', $_GET)){
+		$query->andWhere(['subarea_id'=>$_GET['subarea_id']]);
+            }
+            if(array_key_exists('region_id', $_GET)){
+		$query->andWhere(['group_id'=>$_GET['group_id']]);
+            }
+            // primary_cuisine_id customise here
+            if(array_key_exists('primary_cuisine_id', $_GET)){
+		$query->andWhere(['primary_cuisine_id'=>$_GET['primary_cuisine_id']]);
+            }
+            // costfortwo customize here
+	    if(array_key_exists('costfortwo', $_GET)){
+		$param=explode('-',$_GET['costfortwo']); 
+		if(!empty($param[0]) && !empty($param[1]))
+		{
+		   $query->andWhere('costfortwo BETWEEN '.$param[0].' AND '.$param[1]);
 		}
-
-	      }else if($key =='per-page'){
-		$perpage = $value; // customise perpage 
-	      }		
-	    }
-            
+            }
+	    // keyword by name, address customise here
+	    if(array_key_exists('keyword', $_GET)){
+		$query->andWhere('name like "%'.$_GET['keyword'].'%" OR address like "%'.$_GET['keyword'].'%" ');
+            }
 	    // nearby customize here
 	    if(array_key_exists('lat', $_GET) && array_key_exists('long', $_GET)){
-		
-			$query->having('(POW((69.1*(longitude-"'.$_GET['long'].'")*cos('.$_GET['lat'].'/57.3)),"2")+POW((69.1*(latitude-"'.$_GET['lat'].'")),"2")*1.609344) <=5');
-                   
-		}
+		$this->setNearbyQuery($query,$_GET['lat'],$_GET['long']);                      
+	    }
          }else{ 
    		throw new \yii\web\HttpException(404, 'city required');
 	 }
-
-	    try {
-			
-			$provider = new ActiveDataProvider([
-			    'query' => $query,
-                            'sort'=> ['defaultOrder' => ['reservation'=>SORT_DESC,'critics_review'=>SORT_DESC]],
-			    'pagination' => [
-				'pageSize' => $perpage,
-			    ],
-			]);
-		
-      
-	    } catch (Exception $ex) {
-		throw new \yii\web\HttpException(500, 'Internal server error');
-	    }
-
-	    if ($provider->getCount() <= 0) {
-		throw new \yii\web\HttpException(404, 'No entries found with this query string');
-	    } 
-	    else {
-		return $provider;
-	    }
+	 return $this->prepareDataProvider($query,$perpage);
 	
     }
-
-       
-
   /**
+   * @return Nearby Restaurants
+   * @Note: customize index if you need
+   * @author jayanta kundu modified on 11.06.2015
+   */
+   public function actionNearby()
+   {
+	$perpage = 5;
+        $model = new $this->modelClass;
+        //print_r($_GET);exit;
+       
+        if (!empty($_GET) && array_key_exists('city_id', $_GET)) {
+	     $query = $model->find(); 
+	     $query->joinWith(['resCritic' => function ($query) {}]);
+	     // apply city filter and status active filter here
+             $query->where(['city_id'=>$_GET['city_id'],'status'=>'1']);
+		
+		if(array_key_exists('per-page', $_GET)){ $perpage = $_GET['per-page'];}
+		if(array_key_exists('lat', $_GET) && array_key_exists('long', $_GET)){
+                	$this->setNearbyQuery($query,$_GET['lat'],$_GET['long']);
+           	}else{ 
+   		throw new \yii\web\HttpException(404, 'latitude , longitude required');
+	        }
+         }else{ 
+   		throw new \yii\web\HttpException(404, 'city required');
+	 }
+	
+	return $this->prepareDataProvider($query,$perpage);
+	    
+   }
+ /**
+   * @return near by query
+   * @Note: customize setperpage if you need
+   * @author jayanta kundu created on 11.06.2015
+   */ 
+   private function setNearbyQuery($query,$lat,$long){
+	// set calculated distance to distance fields
+	$query->select(['ed_restaurants.*' ,'(POW( ( 69.1 * ( longitude - "'.$_GET['long'].'" ) * cos( '.$_GET['lat'].' / 57.3 ) ) , "2" ) + POW( ( 69.1 * ( latitude - "'.$_GET['lat'].'" ) ) , "2" ) * (1.609344)) AS `distance` ']);
+	$query->having('distance<=5');
+	// overwrite sort order here
+	$query->orderBy(['reservation'=>SORT_DESC,'critics_review'=>SORT_DESC,'distance'=>SORT_ASC,'ed_res_critic.rating'=>SORT_DESC]);
+         
+	return $query;
+   }
+   
+     /**
    * @return Restaurant Reviews
    * @Note: customize index if you need
    * @author jayanta kundu modified on 04.06.2015
@@ -200,6 +210,44 @@ class RestaurantController extends ActiveController
 
 	return $provider;
    }
+   
+  /**
+   * @return perpage
+   * @Note: customize setperpage if you need
+   * @author jayanta kundu created on 11.06.2015
+   */    
+   private function setperpage($perpage){
+	if($perpage>30){ return '30';}
+	else if($perpage<=0){ return '5';}
+	else{ return $perpage;}
+    }
+  /**
+   * @return prepareDataProvider
+   * @Note: customize prepareDataProvider if you need
+   * @author jayanta kundu created on 11.06.2015
+   */
+    private function prepareDataProvider($query,$perpage){
+        $perpage = $this->setperpage($perpage);
+	try {
+			
+			$provider = new ActiveDataProvider([
+			    'query' => $query,
+			    'pagination' => [
+				'pageSize' => $perpage,
+			    ],
+			]);
+		
+      
+	    } catch (Exception $ex) {
+		throw new \yii\web\HttpException(500, 'Internal server error');
+	    }
+	    if ($provider->getCount() <= 0) {
+		throw new \yii\web\HttpException(404, 'No entries found with this query string');
+	    } 
+	    else {
+		return $provider;
+	    }
+    }
 
 
 }
