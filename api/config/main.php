@@ -19,6 +19,10 @@ return [
         'v1' => [
             'basePath' => '@app/modules/v1',
             'class' => 'api\modules\v1\Module'
+        ],
+	'v2' => [
+            'basePath' => '@app/modules/v2',
+            'class' => 'api\modules\v2\Module'
         ]
     ],
     'components' => [        
@@ -61,6 +65,26 @@ return [
 			    'GET test' => 'ss',
 			]*/
                     
+                ],
+		        [
+                    'class' => 'yii\rest\UrlRule', 
+                    'controller' => ['v1/explore','v1/cms'],
+                    'pluralize'=>false,
+                            'tokens' => [
+                            '{id}' => '<id:\\d+>',
+                            ],
+                            'patterns' => [
+                    'GET' => 'index',
+                                'GET {id}' => 'view',
+                         ],
+                ],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => ['v2/explore'],
+                    'pluralize'=>false,
+                    'patterns' => [
+                        'GET' => 'index',
+                    ],
                 ],
              
             ],        
