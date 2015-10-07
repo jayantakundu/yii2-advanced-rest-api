@@ -10,6 +10,6 @@ You can then install the application using the following commands:
 
 git clone https://github.com/jayantakundu/yii2-advanced-rest-api.git empty_repository_dir
 
-php composer.pher install
+php composer.phar install
 
 GETTING STARTED
