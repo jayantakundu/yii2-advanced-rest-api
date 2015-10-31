@@ -249,6 +249,19 @@ class RestaurantController extends ActiveController
 	    }
     }
 
+    public function afterAction($action, $result)
+    {
+        $result = parent::afterAction($action, $result);
+        //if(!empty($result['items'])) {
+            if($action->id=='index') {
+                $city = City::findOne(['id'=>$_GET['city_id']]);
+                if(empty($this->pagetitle)){$this->pagetitle = $city->name;}
+                $result['pageUrl'] = WEBSITE_URL.'/'.$city->code.'/restaurants'.$this->pageUrl;
+                $result['pageTitle'] = $this->pagetitle;
+            }
+        //}
+        return $result;
+    }
 
 }
 
