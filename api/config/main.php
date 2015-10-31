@@ -47,13 +47,11 @@ return [
                 [
                     'class' => 'yii\rest\UrlRule', 
                     'controller' => [ 'v1/country', 'v1/restaurant'],
-                    //'prefix' => '/countries/<id:\\d+>',
                     //'pluralize'=>false,
                     'tokens' => [
 		            '{id}' => '<id:\\d+>', 
                     ],
                     'patterns' => [
-			    //'PUT' => 'create',
                             'GET' => 'index',
                             //'GET search' => 'search',
                             'GET <id>' => 'view',
@@ -61,10 +59,6 @@ return [
 			    'GET <id>/gallery' => 'gallery',
 			    'GET <id>/menu' => 'menu'
 			],
-                    /*'extraPatterns' => [
-			    'GET test' => 'ss',
-			]*/
-                    
                 ],
 		        [
                     'class' => 'yii\rest\UrlRule', 
@@ -88,7 +82,20 @@ return [
                 ],
              
             ],        
-        ]
+        ],
+        'response' => [
+            'class' => 'yii\web\Response',
+            'on beforeSend' => function ($event) {
+                $response = $event->sender;
+                if ($response->data !== null && Yii::$app->request->get('suppress_response_code')) {
+                    $response->data = [
+                        'success' => $response->isSuccessful,
+                        'data' => $response->data,
+                    ];
+                    $response->statusCode = 200;
+                }
+            },
+        ],
     ],
     'params' => $params,
 ];
